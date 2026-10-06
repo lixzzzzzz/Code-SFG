@@ -1,0 +1,52 @@
+DATASET: 'KittiDataset'
+DATA_PATH: '/home/xiaozhi/data/code_py/openPCDet/OpenPCDet-master/data/vod/radar_5frames'
+#点云范围
+POINT_CLOUD_RANGE: [0, -25.6, -3, 51.2, 25.6, 2]
+#数据划分
+DATA_SPLIT: {
+    'train': train,
+    'test': val
+}
+#info信息路径
+INFO_PATH: {
+    'train': [kitti_infos_train.pkl],
+    'test': [kitti_infos_val.pkl],
+}
+
+# GET_ITEM_LIST: ["points", "images", "calib_matricies"]
+
+#仅使用视野内的点云数据
+FOV_POINTS_ONLY: True
+#数据增强
+DATA_AUGMENTOR:
+    DISABLE_AUG_LIST: ['placeholder'] #禁用数据增强方法
+    AUG_CONFIG_LIST:
+        - NAME: random_world_flip   #沿x轴随机翻转
+          ALONG_AXIS_LIST: ['x']
+
+        - NAME: random_world_scaling  #随机对点云数据进行世界坐标系下的缩放
+          WORLD_SCALE_RANGE: [0.95, 1.05]
+#点云编码方式
+POINT_FEATURE_ENCODING: {
+    encoding_type: absolute_coordinates_encoding,
+    used_feature_list: ['x', 'y', 'z', 'rcs', 'v_r', 'v_r_comp', 'time'],
+    src_feature_list: ['x', 'y', 'z', 'rcs', 'v_r', 'v_r_comp', 'time'],
+}
+#数据处理
+DATA_PROCESSOR:
+    - NAME: mask_points_and_boxes_outside_range #去除范围外的 bbox 和 points
+      REMOVE_OUTSIDE_BOXES: True
+
+    - NAME: shuffle_points    #点云随机排序
+      SHUFFLE_ENABLED: {
+        'train': True,
+        'test': False
+      }
+
+    - NAME: transform_points_to_voxels  #点云向体素转换
+      VOXEL_SIZE: [0.16, 0.16, 5]
+      MAX_POINTS_PER_VOXEL: 10
+      MAX_NUMBER_OF_VOXELS: {
+        'train': 16000,
+        'test': 40000
+      }
